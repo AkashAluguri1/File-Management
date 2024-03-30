@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- META -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="uisual" content="Made with Uisual (uisual.com)">
+    <meta name="author" content="#">
+    <meta name="description" content="#">
+    <meta name="referrer" content="unsafe-url">
+    <meta name="robots" content="index, follow"> <!-- LINK -->
+    <link rel="me" href="#">
+    <link rel="canonical" href="#">
+    <link rel="icon" type="image/png" href="#" sizes="48x48"> <!-- PERFORMANCE -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css" />
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script> 
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <title>Dashboard</title>
+    <style type="text/css">
+        .upload-btn {
+        /*         display: inline-block;*/
+           font-size: 12px;
+           background-color: #4caf50;
+           color: #fff;
+           padding: 5px 10px;
+           margin-top: 5px;
+           cursor: pointer;
+           border-radius: 5px;
+           transition: background-color 0.3s;
+        }
+        .upload-btn:hover {
+           background-color: #45a049;
+        }
+        #fileList {
+           list-style: none;
+           padding: 0;
+        }
+        .file-item {
+           display: flex;
+           align-items: center;
+           justify-content: space-between;
+           border-bottom: 1px solid #ddd;
+           padding: 10px 0;
+        }
+        .file-actions {
+           display: flex;
+           gap: 10px;
+        }
+        .paging_simple_numbers
+        {
+           display: flex;
+        }
+        .dataTables_wrapper {
+           font-size: 12px;
+        }
+        .display-flex
+        {
+           display: flex;
+           gap: 20px;
+        }
+
+        /* Modal styles */
+       .modal {
+         display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5);
+         justify-content: center;
+         align-items: center;
+       }
+
+       .modal-content {
+         background-color: #fefefe;
+         padding: 20px;
+         border: 1px solid #888;
+         width: 80%;
+         max-width: 400px;
+       }
+
+       /* Style for user list */
+       #userList {
+         list-style: none;
+         padding: 0;
+         margin: 0;
+         max-height: 128px;
+         overflow-y: scroll;
+       }
+
+       #userList li {
+         margin-bottom: 10px;
+         cursor: pointer;
+       }
+
+
+    </style>
+    <script type="text/javascript">
+    
+
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    let users = [ ];
+    let recipient = ''
+    let shareFileName = ''
+
+    axios.get(`/users`)
+      .then(res => {
+         console.log(res);
+         console.log(res.data);
+                                                    
+         if(res.data.status == 'ok'){
+            users = res.data.message;
+         }
+         else{
+            console.log(res.data.message);
+            // alert(res.data.message);
+         }
+      }) 
+
+      axios.get(`/user`)
+      .then(res => {
+         console.log(res);
+         console.log(res.data);
+         
+          let user = res.data.message;
+          $('#userName').html(user)
+         
+      }) 
+
+    // File upload
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(uploadForm);
+
+        fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(res => {
+                listFiles();
+                console.log(res);
+                window.location.reload()
+            })
+            .catch(error => console.error('Error:', error));
+    });
+
+    // List files
+    function listFiles() {
+        fetch('/files')
+            .then(response => response.json())
+            .then(data => {
+                renderFileList(data.files);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function renderFileList(files) {
+        const table = $('#fileListTable').DataTable({
+            // "lengthMenu": [7],
+            "bDestroy": true,
+            responsive: true
+        });
+        table.clear().draw();
+
+
+        files.forEach(file => {
+            const downloadBtn = `<button class="action-btn download-btn" style="color:#387c38" data-file="${file}"><i class="fas fa-download"></i></button>`;
+            const deleteBtn = `<button class="action-btn delete-btn"  style="color:#b63838" data-file="${file}"><i class="fas fa-trash"></i></button>`;
+            const shareBtn = `<button class="action-btn share-btn"  style="color:#3e39a8" data-file="${file}"><i class="fas fa-share"></i></button>`;
+
+            const row = table.row.add([file, downloadBtn + ' ' + deleteBtn + ' ' + shareBtn]).draw().node();
+
+            const secondTd = row.getElementsByTagName('td')[1];
+            secondTd.classList.add('display-flex')
+
+            row.setAttribute('data-file', file);
+        });
+    }
+
+    $('#fileListTable').on('click', '.download-btn', function() {
+        const file = $(this).data('file');
+        window.open(`/download/${encodeURIComponent(file)}`, '_blank');
+    });
+
+    $('#fileListTable').on('click', '.delete-btn', function() {
+        const file = $(this).data('file');
+        deleteFile(file);
+    });
+
+    $('#fileListTable').on('click', '.share-btn', function() {
+        const file = $(this).data('file');
+        shareFile(file);
+    });
+
+
+    // Delete file
+    function deleteFile(fileName) {
+        console.log('deleteFile');
+        if (confirm(`Are you sure you want to delete ${fileName}?`)) {
+            fetch(`/delete/${encodeURIComponent(fileName)}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    listFiles();
+                    console.log(data);
+                    alert(data.message);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function downloadFile(fileName) {
+        window.open(`/download/${encodeURIComponent(fileName)}`, '_blank');
+    }
+
+    function shareFile(fileName) {
+        shareFileName = fileName;
+        openUserModal();
+    }
+
+       // Function to open the user modal
+     function openUserModal() {
+       const modal = document.getElementById('userModal');
+       modal.style.display = 'flex';
+       displayUserList();
+     }
+
+     
+
+     // Function to display the user list
+     function displayUserList() {
+       const userList = document.getElementById('userList');
+       userList.innerHTML = '';
+
+       users.forEach(user => {
+         const listItem = document.createElement('li');
+         listItem.textContent = user.name;
+         listItem.onclick = () => selectUser(user);
+         userList.appendChild(listItem);
+       });
+     }
+
+     // Function to handle user selection
+     function selectUser(selectedUser) {
+       // Close the modal
+       closeUserModal();
+
+       // Pass the selected user back to the calling function
+       handleUserSelection(selectedUser);
+     }
+
+     // Function to handle user selection in the calling function
+     function handleUserSelection(selectedUser) {
+       // Replace this with your logic to handle the selected user
+       recipient = selectedUser.name
+       console.log('Selected User:', selectedUser.name);
+       let url = '/share/' + shareFileName + '/' + recipient;
+       console.log(url)
+       axios.get(url)
+         .then(res => {
+            console.log(res);
+            console.log(res.data);
+                                                       
+            if(res.data.status == 'ok'){
+               users = res.data.message;
+               window.location.reload()
+               alert('File shared successfully')
+            }
+            else{
+               console.log(res.data.message);
+               // alert(res.data.message);
+            }
+         }) 
+
+
+
+     }
+
+
+    function shareFileOld(fileName) {
+
+        var link = "http://localhost:3000/download/" + encodeURIComponent(fileName);
+        var textarea = $("<textarea>")
+            .attr("readonly", true)
+            .css("position", "absolute")
+            .css("left", "-9999px")
+            .val(link);
+
+        // Append the textarea to the body
+        $("body").append(textarea);
+
+        // Select the text in the textarea
+        textarea[0].select();
+
+        try {
+            // Copy the selected text to the clipboard
+            document.execCommand('copy');
+            alert("Link copied to clipboard");
+        } catch (err) {
+            console.error("Unable to copy text to clipboard", err);
+        }
+
+        // Remove the textarea from the DOM
+        textarea.remove();
+    }
+
+    // Initial file list
+    listFiles();
+});
+
+   // Function to close the user modal
+     function closeUserModal() {
+       const modal = document.getElementById('userModal');
+       modal.style.display = 'none';
+     }
+
+    </script>
+</head>
+
+<body>
+    <header role="banner" class="ui-section-header ui-section-header-design">
+        <div class="ui-layout-container">
+            <div class="ui-section-header__layout ui-layout-flex">
+                <!-- LOGO --> <a href="../../index.html" role="link" aria-label="#" class="ui-section-header--logo">
+                    <div class="flex">
+                        <!-- <span class="material-symbols-rounded  icon in">auto_stories</span> -->
+                        <h2>FileDrive</h2>
+                    </div>
+                </a> <input type="checkbox" id="ui-section-header--menu-id"> <label for="ui-section-header--menu-id" class="ui-section-header--menu-icon"></label> <!-- MENU -->
+
+                <nav role="navigation" class="ui-section-header--nav ui-layout-flex">
+                     <a href="/logout" role="link" aria-label="#" class="ui-section-header--nav-link">
+                        <div class="flex"> <span class="material-symbols-rounded  icon">person</span><span id="userName">User</span> </div>
+                    </a>
+                     <a href="/logout" role="link" aria-label="#" class="ui-section-header--nav-link">
+                        <div class="flex"> <span class="material-symbols-rounded  icon">logout</span> </div>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <main role="main">
+        <section class="ui-section-contact">
+            <div class="ui-layout-container"> <br /><br />
+                <div class="container">
+                    <form id="uploadForm" enctype="multipart/form-data"> <label for="fileInput"> <input type="file" id="fileInput" name="file" accept=".txt, .pdf, .doc, .docx, .jpg, jpeg, .png"> <button class="upload-btn" type="submit">Upload</button> </label> </form> <!-- List files --> <br /><br />
+                    <table id="fileListTable" class="display" style="font-size:12px;text-align: left;">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th style="width: 15%; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fileList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- The Modal -->
+   <div id="userModal" class="modal">
+     <!-- Modal content -->
+     <div class="modal-content">
+      <div>
+         <h3>Select user to share file</h3>
+
+         <span class="material-symbols-rounded  icon" style="position: relative; float: right; top: -42px; cursor: pointer;" onclick="closeUserModal()">close</span>
+         <!-- <button style="position: relative; float: right; top: -42px;" onclick="closeUserModal()">Close</button> -->
+      </div>
+       
+       <ul id="userList"></ul>
+       
+     </div>
+   </div>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- META -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="uisual" content="Made with Uisual (uisual.com)">
+    <meta name="author" content="#">
+    <meta name="description" content="#">
+    <meta name="referrer" content="unsafe-url">
+    <meta name="robots" content="index, follow"> <!-- LINK -->
+    <link rel="me" href="#">
+    <link rel="canonical" href="#">
+    <link rel="icon" type="image/png" href="#" sizes="48x48"> <!-- PERFORMANCE -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/main.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script> <!-- TITLE -->
+    <title>Signup</title>
+    <script type="text/javascript">
+        function  signup()
+         {
+             
+             const uname = $("#uname");
+             const email = $("#email");
+             const password = $("#password");
+        
+             if(!uname.val()){
+                 alert('Enter name');
+                $('#uname').focus()
+                return
+             }
+        
+             const pattern = /^\b[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
+             if(!email.val() || !pattern.test(email.val())){
+               alert('Enter valid email');
+                $('#email').focus()
+                return
+             }
+        
+             if(!password.val()){
+               alert('Enter password');
+                $('#password').focus()
+                return
+             }
+          
+             const postdata = {
+                 name:uname.val(),
+                 email:email.val(),
+                 password:password.val(),
+              }
+        
+              axios.post(`/signup`, postdata)
+              .then(res => {
+                 console.log(res);
+                 console.log(res.data);
+                                                     
+                 if(res.data.status == 'ok'){
+                    alert("Registration successfull")
+                    window.location.replace('/')
+                 }
+                 else{
+                    console.log(res.data.message);
+                    alert(res.data.message);
+                 }
+              })    
+                 
+         }
+        
+    </script>
+</head>
+
+<body>
+    
+    </header>
+    <main role="main">
+        <section class="ui-section-contact">
+            <div class="ui-layout-container">
+                <div class="ui-section-contact__layout ui-layout-grid ui-layout-grid-3">
+                    <div> </div>
+                    <div class="ui-component-card ui-component-card--contact"> 
+                        <!-- <span class="material-symbols-rounded  icon align-center">Person_Add</span> -->
+                        <h2 style="text-align: center;">FileDrive</h2>
+                        <p style="text-align: center;">Signup</p> 
+                        <input type="text" id="uname" placeholder="NAME"> <input type="text" id="email" placeholder="EMAIL"> <input type="password" id="password" placeholder="PASSWORD"> <br /> <a href="#" onclick="signup();" class="ui-component-button ui-component-button-big ui-component-button-primary" role="link" aria-label="#">Signup</a> <a href="/login" class="ui-component-button ui-component-button-big ui-component-button-secondary" role="link" aria-label="#">Login</a>
+                    </div>
+                    <div> </div>
+                </div>
+        </section>
+    </main>
+</body>
+
+</html>
